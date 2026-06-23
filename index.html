@@ -135,6 +135,11 @@
             border-color: var(--border-line);
         }
 
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
         .action-btn {
             background-color: var(--border-line);
             color: #0b1329;
@@ -150,6 +155,15 @@
 
         .action-btn:hover {
             background-color: var(--accent-highlight);
+        }
+
+        .cancel-btn {
+            background-color: #475569;
+            color: #fff;
+        }
+
+        .cancel-btn:hover {
+            background-color: #64748b;
         }
 
         .filter-ribbon {
@@ -266,12 +280,28 @@
             color: var(--accent-highlight);
         }
 
-        .delete-btn {
+        .management-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .mgmt-btn {
             background: none;
             border: none;
-            color: var(--status-red);
             cursor: pointer;
             font-weight: bold;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+
+        .edit-btn {
+            color: var(--accent-glow);
+        }
+        .edit-btn:hover { color: var(--accent-highlight); }
+
+        .delete-btn {
+            color: var(--status-red);
         }
     </style>
 </head>
@@ -284,9 +314,11 @@
     </header>
 
     <div class="app-layout">
-        <div class="panel-card">
-            <h2>Building Asset Record</h2>
+        <div class="panel-card" id="formDesk">
+            <h2 id="formPanelTitle">Building Asset Record</h2>
             <form id="civilAssetForm">
+                <input type="hidden" id="editingUid" value="">
+
                 <div class="form-element">
                     <label for="jurisdictionLayer">Jurisdiction Office Name</label>
                     <select id="jurisdictionLayer" required onchange="populateXenOffices()">
@@ -386,7 +418,10 @@
                     </select>
                 </div>
 
-                <button type="submit" class="action-btn">Commit Entry to Registry</button>
+                <div class="btn-group">
+                    <button type="submit" id="submitBtn" class="action-btn">Commit Entry to Registry</button>
+                    <button type="button" id="cancelEditBtn" class="action-btn cancel-btn" style="display: none;" onclick="resetFormState()">Cancel</button>
+                </div>
             </form>
         </div>
 
@@ -429,14 +464,14 @@
 </div>
 
 <script>
-    // System cascading hierarchical matrix architecture router with dynamic "XEN Office Campus" inclusions
+    // System dynamic multi-tiered cascading layout configuration engine
     const hierarchyRouter = {
         "CE, Central Distribution Zone, Mymensingh": {
             "CE Headquarters": ["CE Office Campus", "Zonal Repair Shop, Tongi"]
         },
         "SE, O&M Circle Mymensingh 1": {
-            "XEN, S&D-l, MYMENSINGH": ["XEN Office Campus", "RE, FULBARIA", "RE, DAPUNIA", "MUKTAGACHA", "Rohmatpur Substation", "Chorpara Substation"],
-            "XEN, S&D-2, MYMENSINGH": ["XEN Office Campus"],
+            "XEN, S&D-l, MYMENSINGH": ["XEN Office Campus", "RE, FULBARIA", "RE,  DAPUNIA", "MUKTAGACHA", "Rohmatpur Substation", "Chorpara Substation"],
+            "XEN, S&D-2, MYMENSINGH": ["XEN Office Campus", "Kewatkhali Office Campus"],
             "XEN, S&D, TRISHAL": ["XEN Office Campus"],
             "XEN, S&D, BHALUKA": ["XEN Office Campus"],
             "XEN, S&D, GAFARGAON": ["XEN Office Campus"]
@@ -480,13 +515,14 @@
         const xenSelect = document.getElementById('xenOffice');
         xenSelect.innerHTML = '';
 
-        Object.keys(hierarchyRouter[circle]).forEach(xen => {
-            let opt = document.createElement('option');
-            opt.value = xen;
-            opt.textContent = xen;
-            xenSelect.appendChild(opt);
-        });
-
+        if (hierarchyRouter[circle]) {
+            Object.keys(hierarchyRouter[circle]).forEach(xen => {
+                let opt = document.createElement('option');
+                opt.value = xen;
+                opt.textContent = xen;
+                xenSelect.appendChild(opt);
+            });
+        }
         populateSubOffices();
     }
 
@@ -511,13 +547,14 @@
         const subSelect = document.getElementById('subBuildingClass');
         subSelect.innerHTML = '';
 
-        buildingClassMap[chosenClass].forEach(sub => {
-            let opt = document.createElement('option');
-            opt.value = sub;
-            opt.textContent = sub;
-            subSelect.appendChild(opt);
-        });
-
+        if (buildingClassMap[chosenClass]) {
+            buildingClassMap[chosenClass].forEach(sub => {
+                let opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                subSelect.appendChild(opt);
+            });
+        }
         checkForBoundaryWall();
     }
 
@@ -546,8 +583,10 @@
             subCategoryFinal = document.getElementById('customOptionInput').value || "Custom Asset";
         }
 
+        const editingUid = document.getElementById('editingUid').value;
+
         const payload = {
-            uid: Date.now(),
+            uid: editingUid ? parseInt(editingUid) : Date.now(),
             layer: document.getElementById('jurisdictionLayer').value,
             xen: document.getElementById('xenOffice').value,
             office: document.getElementById('localOffice').value,
@@ -565,19 +604,77 @@
             status: document.getElementById('executionStatus').value
         };
 
-        dataStorage.push(payload);
+        if (editingUid) {
+            const targetIdx = dataStorage.findIndex(item => item.uid === payload.uid);
+            if (targetIdx !== -1) dataStorage[targetIdx] = payload;
+        } else {
+            dataStorage.push(payload);
+        }
+
         localStorage.setItem('bpdb_mym_civil_assets', JSON.stringify(dataStorage));
-        
-        this.reset();
-        populateXenOffices();
-        handleBuildingClassShift();
+        resetFormState();
         displayRegistryTable();
     });
 
+    function editRecord(uid) {
+        const item = dataStorage.find(record => record.uid !== null && record.uid === uid);
+        if (!item) return;
+
+        document.getElementById('editingUid').value = item.uid;
+        document.getElementById('formPanelTitle').textContent = "✏️ Edit Asset Record";
+        document.getElementById('submitBtn').textContent = "Update Record Registry";
+        document.getElementById('cancelEditBtn').style.display = "inline-block";
+
+        document.getElementById('jurisdictionLayer').value = item.layer;
+        populateXenOffices();
+        document.getElementById('xenOffice').value = item.xen;
+        populateSubOffices();
+        document.getElementById('localOffice').value = item.office;
+
+        document.getElementById('mainBuildingClass').value = item.mainClass;
+        handleBuildingClassShift();
+
+        if (!buildingClassMap[item.mainClass].includes(item.subClass) && item.subClass !== "Boundary Wall") {
+            document.getElementById('subBuildingClass').value = "Custom Type Option Input";
+            checkForBoundaryWall();
+            document.getElementById('customOptionInput').value = item.subClass;
+        } else {
+            document.getElementById('subBuildingClass').value = item.subClass;
+            checkForBoundaryWall();
+        }
+
+        document.getElementById('layoutLink').value = item.layout;
+        document.getElementById('structureIdentity').value = item.identity;
+        document.getElementById('areaSft').value = item.area;
+        document.getElementById('areaPerUnit').value = item.areaPerUnit;
+        document.getElementById('numUnits').value = item.units;
+        document.getElementById('numFloors').value = item.floors;
+        document.getElementById('wallLength').value = item.lengthFt;
+        document.getElementById('drawingLink').value = item.drawing;
+        document.getElementById('civilDetails').value = item.logs;
+        document.getElementById('executionStatus').value = item.status;
+
+        document.getElementById('formDesk').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetFormState() {
+        document.getElementById('editingUid').value = "";
+        document.getElementById('formPanelTitle').textContent = "Building Asset Record";
+        document.getElementById('submitBtn').textContent = "Commit Entry to Registry";
+        document.getElementById('cancelEditBtn').style.display = "none";
+        
+        document.getElementById('civilAssetForm').reset();
+        populateXenOffices();
+        handleBuildingClassShift();
+    }
+
     function purgeRecord(uid) {
-        dataStorage = dataStorage.filter(item => item.uid !== uid);
-        localStorage.setItem('bpdb_mym_civil_assets', JSON.stringify(dataStorage));
-        displayRegistryTable();
+        if (confirm("Are you sure you want to delete this asset record permanently?")) {
+            dataStorage = dataStorage.filter(item => item.uid !== uid);
+            localStorage.setItem('bpdb_mym_civil_assets', JSON.stringify(dataStorage));
+            if (document.getElementById('editingUid').value == uid) resetFormState();
+            displayRegistryTable();
+        }
     }
 
     function displayRegistryTable() {
@@ -608,7 +705,7 @@
                 profileMetricsString = `Total: ${record.area} SFT<br>Unit: ${record.areaPerUnit} SFT<br>Units: ${record.units} | Floors: ${record.floors}`;
             }
 
-            // Desktop Row Layout Engine
+            // Desktop Table Presentation Matrix
             let matrixRow = `<tr>
                 <td><span class="tag ${hierarchyTagStyle}">${record.layer}</span></td>
                 <td><b style="font-size:0.8rem; color:var(--accent-glow);">${record.xen}</b><br><span style="font-size:0.85rem;">${record.office}</span></td>
@@ -618,15 +715,23 @@
                 <td>${layoutLinkHtml}<br>${drawingLinkHtml}</td>
                 <td>${record.logs}</td>
                 <td><span class="status-dot" style="background-color: ${indicatorColor}"></span><span style="font-size:0.8rem;">${record.status}</span></td>
-                <td><button class="delete-btn" onclick="purgeRecord(${record.uid})">✕ Clear</button></td>
+                <td>
+                    <div class="management-btns">
+                        <button class="mgmt-btn edit-btn" onclick="editRecord(${record.uid})">✏️ Edit</button>
+                        <button class="mgmt-btn delete-btn" onclick="purgeRecord(${record.uid})">✕ Clear</button>
+                    </div>
+                </td>
             </tr>`;
             bodyTarget.insertAdjacentHTML('beforeend', matrixRow);
 
-            // Responsive Mobile Cards Engine Layout
+            // Responsive Phone Layout Engine
             let mobileCard = `<div class="responsive-mobile-card">
                 <div class="mobile-card-row" style="display:flex; justify-content:space-between; align-items:center;">
                     <span class="tag ${hierarchyTagStyle}">${record.layer}</span>
-                    <button class="delete-btn" onclick="purgeRecord(${record.uid})">✕ Clear</button>
+                    <div style="display:flex; gap:12px;">
+                        <button class="mgmt-btn edit-btn" onclick="editRecord(${record.uid})">✏️ Edit</button>
+                        <button class="mgmt-btn delete-btn" onclick="purgeRecord(${record.uid})">✕ Clear</button>
+                    </div>
                 </div>
                 <div class="mobile-card-row">
                     <div class="mobile-label">Office Assignment Context</div>
@@ -670,7 +775,6 @@
         return 'var(--status-green)';
     }
 
-    // Initialize layout logic
     populateXenOffices();
     handleBuildingClassShift();
     displayRegistryTable();
