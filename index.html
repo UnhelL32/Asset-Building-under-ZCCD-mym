@@ -43,7 +43,6 @@
             margin: 0 auto;
         }
 
-        /* Navigation Header Dashboard Tabs Layout */
         .navigation-desk {
             display: flex;
             justify-content: center;
@@ -81,7 +80,6 @@
             box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
         }
 
-        /* View State Switching Engine */
         .app-view-panel {
             display: none;
         }
@@ -96,7 +94,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Page 1: Welcome Home Screen */
         .welcome-hero-card {
             background-color: var(--bg-panel);
             border: 1px solid rgba(72, 202, 228, 0.2);
@@ -152,7 +149,6 @@
             color: var(--text-primary);
         }
 
-        /* Generic Core Panels UI elements */
         .panel-card {
             background-color: var(--bg-panel);
             border: 1px solid rgba(72, 202, 228, 0.2);
@@ -247,7 +243,6 @@
         }
         .print-trigger-btn:hover { background-color: var(--accent-glow); color: #0b1329; }
 
-        /* Page 3: Presentation Master Database Layout */
         .db-control-ribbon {
             display: flex;
             flex-wrap: wrap;
@@ -360,82 +355,6 @@
         .mgmt-btn { background: none; border: none; cursor: pointer; font-weight: bold; text-align: left; font-size: 0.85rem; }
         .edit-btn { color: var(--accent-glow); }
         .delete-btn { color: var(--status-red); }
-
-        /* ADVANCED PRINT CSS RULES ENGINE OVERRIDE */
-        @media print {
-            /* Force reveal the hidden tab panel during window print execution cycle */
-            #databaseViewPanel { 
-                display: block !important; 
-                opacity: 1 !important;
-                visibility: visible !important;
-                position: relative !important;
-            }
-            /* Explicitly drop alternate views and menu elements from the page mapping space */
-            #homeViewPanel, #entryViewPanel, .navigation-desk, .db-control-ribbon, .management-btns, .print-trigger-btn { 
-                display: none !important; 
-            }
-            
-            body, .workspace-wrapper { 
-                background: white !important; 
-                color: black !important; 
-                padding: 0 !important; 
-                margin: 0 !important;
-                width: 100% !important; 
-                max-width: 100% !important;
-            }
-            
-            .panel-card { 
-                border: none !important; 
-                background: transparent !important; 
-                padding: 0 !important; 
-                box-shadow: none !important;
-            }
-            
-            h2 { 
-                color: #000 !important; 
-                font-size: 1.4rem !important;
-                border-bottom: 2px solid #000 !important; 
-                margin-bottom: 20px !important;
-                padding-bottom: 5px !important;
-            }
-
-            table { 
-                display: table !important; 
-                width: 100% !important; 
-                border-collapse: collapse !important;
-                color: #000 !important;
-            }
-            
-            th, td { 
-                color: #000 !important; 
-                border: 1px solid #000 !important; 
-                padding: 8px !important; 
-                font-size: 0.8rem !important; 
-                background: transparent !important;
-            }
-            
-            th { 
-                background-color: #eaeaea !important; 
-                font-weight: bold !important;
-            }
-
-            .tag { 
-                border: 1px solid #555 !important; 
-                background: transparent !important; 
-                color: #000 !important; 
-                padding: 2px 4px !important;
-            }
-            
-            .hyperlink-badge { 
-                color: #000 !important; 
-                text-decoration: underline !important; 
-            }
-            
-            .status-dot { 
-                border: 1px solid #000 !important;
-                background-color: #000 !important;
-            }
-        }
     </style>
 </head>
 <body>
@@ -604,7 +523,7 @@
         <div class="panel-card">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px; gap: 10px;">
                 <h2>Master Asset Registry Log Database</h2>
-                <button class="action-btn print-trigger-btn" onclick="triggerNativePrint()">🖨️ Print Registry</button>
+                <button class="action-btn print-trigger-btn" onclick="executeDynamicClonedPrint()">🖨️ Print Registry</button>
             </div>
 
             <div class="db-control-ribbon">
@@ -618,7 +537,7 @@
                 </select>
             </div>
 
-            <div class="table-frame">
+            <div class="table-frame" id="printableTableContainer">
                 <table id="desktopTable">
                     <thead>
                         <tr>
@@ -630,7 +549,7 @@
                             <th>Blueprints</th>
                             <th>Engineering Logs / Contracts</th>
                             <th>Status</th>
-                            <th>Actions</th>
+                            <th class="hide-on-print">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="registryTableBody"></tbody>
@@ -869,9 +788,79 @@
         }
     }
 
-    // Safety-Wrapped Print Router logic to display data rows on hidden views cleanly
-    function triggerNativePrint() {
-        window.print();
+    // 100% RELIABLE CLONED PRINT RUNTIME EXECUTION ENGINE
+    function executeDynamicClonedPrint() {
+        const filterSelection = document.getElementById('viewFilter').value;
+        const currentDataHTML = document.getElementById('registryTableBody').innerHTML;
+
+        if (!currentDataHTML || currentDataHTML.trim() === "") {
+            alert("The data registry is currently empty. Please submit an entry first.");
+            return;
+        }
+
+        // Open an isolated sandbox print window frame directly
+        const printWindow = window.open('', '_blank', 'width=1100,height=850');
+        
+        // Assemble official clean document formatting markup
+        const documentTemplate = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>BPDB Mymensingh Regional Master Registry Report</title>
+            <style>
+                body { font-family: 'Segoe UI', Arial, sans-serif; color: #000; background: #fff; padding: 30px; margin: 0; }
+                .report-header { text-align: center; border-bottom: 3px double #000; padding-bottom: 12px; margin-bottom: 25px; }
+                .report-header h1 { margin: 0 0 5px 0; font-size: 1.6rem; letter-spacing: 0.5px; }
+                .report-header p { margin: 0; font-size: 0.95rem; color: #444; font-weight: 600; }
+                .meta-summary { font-size: 0.85rem; margin-bottom: 15px; font-weight: bold; display: flex; justify-content: space-between; }
+                table { width: 100%; border-collapse: collapse; text-align: left; margin-top: 10px; }
+                th, td { border: 1px solid #000; padding: 8px 10px; font-size: 0.8rem; vertical-align: top; color: #000; }
+                th { background-color: #f2f2f2; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; }
+                .tag { font-weight: bold; }
+                .hyperlink-badge { color: #000; text-decoration: underline; font-weight: bold; }
+                .management-btns, .hide-on-print { display: none !important; }
+                .status-dot { display: inline-block; width: 7px; height: 7px; background: #000; border-radius: 50%; margin-right: 4px; }
+            </style>
+        </head>
+        <body>
+            <div class="report-header">
+                <h1>ZCCD, BPDB, MYMENSINGH</h1>
+                <p>Regional Hierarchy Civil Infrastructure Master Registry Log</p>
+            </div>
+            <div class="meta-summary">
+                <span>Filter Scope: ${filterSelection === 'All' ? 'All Regional Records' : filterSelection}</span>
+                <span>Generated Date: ${new Date().toLocaleDateString()}</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Jurisdiction</th>
+                        <th>XEN & Sub-Office Node</th>
+                        <th>Classification</th>
+                        <th>Building Name</th>
+                        <th>Structural Metrics</th>
+                        <th>Blueprints</th>
+                        <th>Engineering Logs / Contracts</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${currentDataHTML}
+                </tbody>
+            </table>
+        </body>
+        </html>
+        `;
+
+        printWindow.document.write(documentTemplate);
+        printWindow.document.close();
+        
+        // Execute print once window DOM cycle settles completely
+        printWindow.focus();
+        setTimeout(function() {
+            printWindow.print();
+            printWindow.close();
+        }, 350);
     }
 
     function displayRegistryTable() {
@@ -904,7 +893,6 @@
                 </div>`;
             }
 
-            // Desktop view rendering row matrix pass
             let matrixRow = `<tr>
                 <td><span class="tag ${hierarchyTagStyle}">${record.layer}</span></td>
                 <td><b style="font-size:0.8rem; color:var(--accent-glow);">${record.xen}</b><br><span style="font-size:0.85rem;">${record.office}</span></td>
@@ -914,7 +902,7 @@
                 <td>${layoutLinkHtml}<br>${drawingLinkHtml}</td>
                 <td>${observationCellContent}</td>
                 <td><span class="status-dot" style="background-color: ${indicatorColor}"></span><span style="font-size:0.8rem;">${record.status}</span></td>
-                <td>
+                <td class="hide-on-print">
                     <div class="management-btns">
                         <button class="mgmt-btn edit-btn" onclick="editRecord(${record.uid})">✏️ Edit</button>
                         <button class="mgmt-btn delete-btn" onclick="purgeRecord(${record.uid})">✕ Clear</button>
@@ -923,7 +911,6 @@
             </tr>`;
             bodyTarget.insertAdjacentHTML('beforeend', matrixRow);
 
-            // Phone viewport block builder loop
             let mobileCard = `<div class="responsive-mobile-card">
                 <div class="mobile-card-row" style="display:flex; justify-content:space-between; align-items:center;">
                     <span class="tag ${hierarchyTagStyle}">${record.layer}</span>
