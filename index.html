@@ -43,7 +43,7 @@
             margin: 0 auto;
         }
 
-        /* Multi-Page Navigation Header Dashboard Layout */
+        /* Navigation Header Dashboard Tabs Layout */
         .navigation-desk {
             display: flex;
             justify-content: center;
@@ -81,7 +81,7 @@
             box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2);
         }
 
-        /* Main View State Panels */
+        /* View State Switching Engine */
         .app-view-panel {
             display: none;
         }
@@ -96,7 +96,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Page 1: Welcome Home Screen Styles */
+        /* Page 1: Welcome Home Screen */
         .welcome-hero-card {
             background-color: var(--bg-panel);
             border: 1px solid rgba(72, 202, 228, 0.2);
@@ -122,10 +122,6 @@
             background: linear-gradient(to right, transparent, var(--border-line), transparent);
             margin: 25px auto;
             max-width: 80%;
-        }
-
-        .credentials-box {
-            color: var(--text-primary);
         }
 
         .credentials-box .lbl {
@@ -156,7 +152,7 @@
             color: var(--text-primary);
         }
 
-        /* Generic Layout & Form Card Formatting */
+        /* Generic Core Panels UI elements */
         .panel-card {
             background-color: var(--bg-panel);
             border: 1px solid rgba(72, 202, 228, 0.2);
@@ -245,13 +241,13 @@
         .print-trigger-btn {
             background-color: var(--status-blue);
             color: white;
-            max-width: 200px;
-            padding: 10px 15px;
-            font-size: 0.9rem;
+            max-width: 220px;
+            padding: 12px 15px;
+            font-size: 0.95rem;
         }
         .print-trigger-btn:hover { background-color: var(--accent-glow); color: #0b1329; }
 
-        /* Page 3: Presentation Master Database Table Styles */
+        /* Page 3: Presentation Master Database Layout */
         .db-control-ribbon {
             display: flex;
             flex-wrap: wrap;
@@ -309,6 +305,21 @@
             margin-bottom: 2px;
         }
 
+        .metrics-pill-box {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .metric-pill {
+            background: var(--bg-field);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--accent-highlight);
+        }
+
         @media (min-width: 1100px) {
             .mobile-cards-container { display: none; }
         }
@@ -350,18 +361,80 @@
         .edit-btn { color: var(--accent-glow); }
         .delete-btn { color: var(--status-red); }
 
-        /* Specialized Print CSS Override Rules Context */
+        /* ADVANCED PRINT CSS RULES ENGINE OVERRIDE */
         @media print {
-            body { background: white !important; color: black !important; padding: 0 !important; }
-            .navigation-desk, .db-control-ribbon, .panel-card:not(#databaseViewPanel), .management-btns, .mgmt-btn { display: none !important; }
-            .panel-card { border: none !important; background: transparent !important; padding: 0 !important; }
-            table { display: table !important; width: 100% !important; border: 1px solid #000 !important; color: black !important; }
-            th, td { color: black !important; border-bottom: 1px solid #000 !important; padding: 8px !important; font-size: 0.75rem !important; }
-            th { background: #f0f0f0 !important; color: black !important; }
-            .tag { border: 1px solid #000 !important; background: none !important; color: black !important; }
-            .hyperlink-badge { color: black !important; text-decoration: underline !important; }
-            .workspace-wrapper { max-width: 100% !important; }
-            h2 { color: black !important; border-bottom: 2px solid #000 !important; margin-bottom: 15px !important; }
+            /* Force reveal the hidden tab panel during window print execution cycle */
+            #databaseViewPanel { 
+                display: block !important; 
+                opacity: 1 !important;
+                visibility: visible !important;
+                position: relative !important;
+            }
+            /* Explicitly drop alternate views and menu elements from the page mapping space */
+            #homeViewPanel, #entryViewPanel, .navigation-desk, .db-control-ribbon, .management-btns, .print-trigger-btn { 
+                display: none !important; 
+            }
+            
+            body, .workspace-wrapper { 
+                background: white !important; 
+                color: black !important; 
+                padding: 0 !important; 
+                margin: 0 !important;
+                width: 100% !important; 
+                max-width: 100% !important;
+            }
+            
+            .panel-card { 
+                border: none !important; 
+                background: transparent !important; 
+                padding: 0 !important; 
+                box-shadow: none !important;
+            }
+            
+            h2 { 
+                color: #000 !important; 
+                font-size: 1.4rem !important;
+                border-bottom: 2px solid #000 !important; 
+                margin-bottom: 20px !important;
+                padding-bottom: 5px !important;
+            }
+
+            table { 
+                display: table !important; 
+                width: 100% !important; 
+                border-collapse: collapse !important;
+                color: #000 !important;
+            }
+            
+            th, td { 
+                color: #000 !important; 
+                border: 1px solid #000 !important; 
+                padding: 8px !important; 
+                font-size: 0.8rem !important; 
+                background: transparent !important;
+            }
+            
+            th { 
+                background-color: #eaeaea !important; 
+                font-weight: bold !important;
+            }
+
+            .tag { 
+                border: 1px solid #555 !important; 
+                background: transparent !important; 
+                color: #000 !important; 
+                padding: 2px 4px !important;
+            }
+            
+            .hyperlink-badge { 
+                color: #000 !important; 
+                text-decoration: underline !important; 
+            }
+            
+            .status-dot { 
+                border: 1px solid #000 !important;
+                background-color: #000 !important;
+            }
         }
     </style>
 </head>
@@ -478,7 +551,7 @@
 
                 <div class="form-element">
                     <label for="civilDetails">Maintenance Engineering Observation</label>
-                    <textarea id="civilDetails" rows="3" placeholder="Log design data, physical crack cycles, structural observations..." required></textarea>
+                    <textarea id="civilDetails" rows="3" placeholder="Log design data, physical observations..." required></textarea>
                 </div>
 
                 <div class="form-element">
@@ -510,7 +583,7 @@
                     <div class="form-element form-row-metrics">
                         <div>
                             <label for="contractValue">Contract Value</label>
-                            <input type="number" id="contractValue" placeholder="BDT Value amount" min="0">
+                            <input type="number" id="contractValue" placeholder="BDT amount" min="0">
                         </div>
                         <div>
                             <label for="financialYear">FY (Fin. Year)</label>
@@ -531,7 +604,7 @@
         <div class="panel-card">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px; gap: 10px;">
                 <h2>Master Asset Registry Log Database</h2>
-                <button class="action-btn print-trigger-btn" onclick="window.print()">🖨️ Print Registry</button>
+                <button class="action-btn print-trigger-btn" onclick="triggerNativePrint()">🖨️ Print Registry</button>
             </div>
 
             <div class="db-control-ribbon">
@@ -722,8 +795,6 @@
         localStorage.setItem('bpdb_mym_civil_assets', JSON.stringify(dataStorage));
         resetFormState();
         displayRegistryTable();
-        
-        // Context routing shift focus over to the presentation index panel view directly
         switchView('databaseViewPanel', document.querySelectorAll('.nav-tab')[2]);
     });
 
@@ -798,6 +869,11 @@
         }
     }
 
+    // Safety-Wrapped Print Router logic to display data rows on hidden views cleanly
+    function triggerNativePrint() {
+        window.print();
+    }
+
     function displayRegistryTable() {
         const currentFilter = document.getElementById('viewFilter').value;
         const bodyTarget = document.getElementById('registryTableBody');
@@ -828,7 +904,7 @@
                 </div>`;
             }
 
-            // Desktop Row Component String
+            // Desktop view rendering row matrix pass
             let matrixRow = `<tr>
                 <td><span class="tag ${hierarchyTagStyle}">${record.layer}</span></td>
                 <td><b style="font-size:0.8rem; color:var(--accent-glow);">${record.xen}</b><br><span style="font-size:0.85rem;">${record.office}</span></td>
@@ -847,7 +923,7 @@
             </tr>`;
             bodyTarget.insertAdjacentHTML('beforeend', matrixRow);
 
-            // Mobile Card Component String
+            // Phone viewport block builder loop
             let mobileCard = `<div class="responsive-mobile-card">
                 <div class="mobile-card-row" style="display:flex; justify-content:space-between; align-items:center;">
                     <span class="tag ${hierarchyTagStyle}">${record.layer}</span>
