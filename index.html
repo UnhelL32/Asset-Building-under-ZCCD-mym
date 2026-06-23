@@ -289,17 +289,22 @@
             <form id="civilAssetForm">
                 <div class="form-element">
                     <label for="jurisdictionLayer">Jurisdiction Office Name</label>
-                    <select id="jurisdictionLayer" required onchange="populateSubOffices()">
+                    <select id="jurisdictionLayer" required onchange="populateXenOffices()">
                         <option value="CE, Central Distribution Zone, Mymensingh">CE, Central Distribution Zone, Mymensingh</option>
-                        <option value="O&M Circle, Mymensingh">O&M Circle, Mymensingh</option>
-                        <option value="O&M Circle, Jamalpur">O&M Circle, Jamalpur</option>
-                        <option value="O&M Circle, Kishoreganj">O&M Circle, Kishoreganj</option>
-                        <option value="O&M Circle, Netrokona">O&M Circle, Netrokona</option>
+                        <option value="SE, O&M Circle Mymensingh 1">SE, O&M Circle Mymensingh 1</option>
+                        <option value="SE, O&M Circle Mymensingh 2">SE, O&M Circle Mymensingh 2</option>
+                        <option value="SE, O&M Circle Tangail">SE, O&M Circle Tangail</option>
+                        <option value="SE, O&M Circle Jamalpur">SE, O&M Circle Jamalpur</option>
                     </select>
                 </div>
 
                 <div class="form-element">
-                    <label for="localOffice">Reporting Office</label>
+                    <label for="xenOffice">XEN Office</label>
+                    <select id="xenOffice" required onchange="populateSubOffices()"></select>
+                </div>
+
+                <div class="form-element">
+                    <label for="localOffice">Sub-Office / Node Location</label>
                     <select id="localOffice" required></select>
                 </div>
 
@@ -331,7 +336,7 @@
 
                 <div class="form-element">
                     <label for="structureIdentity">Building Name</label>
-                    <input type="text" id="structureIdentity" placeholder="e.g., Main Office Block, ZRS Repair Shed" required>
+                    <input type="text" id="structureIdentity" placeholder="e.g., Main Office Block, Control Room" required>
                 </div>
 
                 <div class="form-element" id="standardMetricsWrapper">
@@ -357,7 +362,7 @@
 
                 <div class="form-element" id="boundaryMetricsWrapper" style="display: none;">
                     <label for="wallLength">Length (FT)</label>
-                    <input type="number" id="wallLength" placeholder="Enter total asset linear length in feet" min="0">
+                    <input type="number" id="wallLength" placeholder="Enter boundary wall length in feet" min="0">
                 </div>
 
                 <div class="form-element">
@@ -367,7 +372,7 @@
 
                 <div class="form-element">
                     <label for="civilDetails">Maintenance Engineering Observation</label>
-                    <textarea id="civilDetails" rows="3" placeholder="Log design data, physical observations, maintenance remarks..." required></textarea>
+                    <textarea id="civilDetails" rows="3" placeholder="Log design data, physical observations..." required></textarea>
                 </div>
 
                 <div class="form-element">
@@ -392,10 +397,10 @@
                 <select id="viewFilter" onchange="displayRegistryTable()">
                     <option value="All">Show All Regional Records</option>
                     <option value="CE, Central Distribution Zone, Mymensingh">CE, Central Distribution Zone, Mymensingh</option>
-                    <option value="O&M Circle, Mymensingh">O&M Circle, Mymensingh</option>
-                    <option value="O&M Circle, Jamalpur">O&M Circle, Jamalpur</option>
-                    <option value="O&M Circle, Kishoreganj">O&M Circle, Kishoreganj</option>
-                    <option value="O&M Circle, Netrokona">O&M Circle, Netrokona</option>
+                    <option value="SE, O&M Circle Mymensingh 1">SE, O&M Circle Mymensingh 1</option>
+                    <option value="SE, O&M Circle Mymensingh 2">SE, O&M Circle Mymensingh 2</option>
+                    <option value="SE, O&M Circle Tangail">SE, O&M Circle Tangail</option>
+                    <option value="SE, O&M Circle Jamalpur">SE, O&M Circle Jamalpur</option>
                 </select>
             </div>
 
@@ -404,7 +409,7 @@
                     <thead>
                         <tr>
                             <th>Jurisdiction</th>
-                            <th>Reporting Office</th>
+                            <th>Office Context (XEN & Sub-Office)</th>
                             <th>Classification</th>
                             <th>Building Name</th>
                             <th>Civil Profile Data</th>
@@ -423,36 +428,41 @@
     </div>
 </div>
 
-<script {safe}>
-    const officeDatabaseRouter = {
-        "CE, Central Distribution Zone, Mymensingh": [
-            "CE Office Campus",
-            "Zonal Repair Shop, Tongi"
-        ],
-        "O&M Circle, Mymensingh": [
-            "S&D Division-1, Mymensingh (EE)",
-            "S&D Division-2, Mymensingh (EE)",
-            "S&D Division-3, Mymensingh (EE)",
-            "S&D Division, Bhaluka (EE)",
-            "Trishal Electricity Supply (RE)",
-            "Gafargaon Electricity Supply (RE)",
-            "Phulpur Electricity Supply (RE)"
-        ],
-        "O&M Circle, Jamalpur": [
-            "S&D Division, Jamalpur (EE)",
-            "Sherpur Electricity Supply (RE)",
-            "Sharishabari Electricity Supply (RE)"
-        ],
-        "O&M Circle, Kishoreganj": [
-            "S&D Division, Kishoreganj (EE)",
-            "S&D Division, Bhairab (EE)",
-            "Bajitpur Electricity Supply (RE)"
-        ],
-        "O&M Circle, Netrokona": [
-            "S&D Division, Netrokona (EE)",
-            "Durgapur Electricity Supply (RE)",
-            "Mohanganj Electricity Supply (RE)"
-        ]
+<script>
+    // System cascading hierarchical matrix architecture router with dynamic "XEN Office Campus" inclusions
+    const hierarchyRouter = {
+        "CE, Central Distribution Zone, Mymensingh": {
+            "CE Headquarters": ["CE Office Campus", "Zonal Repair Shop, Tongi"]
+        },
+        "SE, O&M Circle Mymensingh 1": {
+            "XEN, S&D-l, MYMENSINGH": ["XEN Office Campus", "RE, FULBARIA", "RE, DAPUNIA", "MUKTAGACHA", "Rohmatpur Substation", "Chorpara Substation"],
+            "XEN, S&D-2, MYMENSINGH": ["XEN Office Campus"],
+            "XEN, S&D, TRISHAL": ["XEN Office Campus"],
+            "XEN, S&D, BHALUKA": ["XEN Office Campus"],
+            "XEN, S&D, GAFARGAON": ["XEN Office Campus"]
+        },
+        "SE, O&M Circle Mymensingh 2": {
+            "XEN, S&D-3, MYMENSINGH": ["XEN Office Campus", "RE, ISHWARGANJ", "RE, GOURIPUR"],
+            "XEN, S&D, FULPUR": ["XEN Office Campus", "RE, HALUAGHAT"],
+            "XEN, S&D, KISHOREGANJ": ["XEN Office Campus", "Joshodol Substation", "Mollpara Substation"],
+            "XEN, S&D, BHAIRAB": ["XEN Office Campus", "RE, KULIARCHAR", "RE, SHIMULKANDI"],
+            "XEN, S&D, NETROKONA": ["XEN Office Campus"],
+            "XEN, S&D, BAJITPUR": ["XEN Office Campus"]
+        },
+        "SE, O&M Circle Tangail": {
+            "XEN, S&D, SOKHIPUR": ["XEN Office Campus", "Kalidash Substation", "Kutubpur Substation"],
+            "XEN, S&D-l, TANGAIL": ["XEN Office Campus"],
+            "XEN, S&D-2, TANGAIL": ["XEN Office Campus"],
+            "XEN, S&D-3, TANGAIL": ["XEN Office Campus"],
+            "XEN, S&D, BHUAPUR": ["XEN Office Campus"],
+            "XEN, S&D, GHATAIL": ["XEN Office Campus"],
+            "XEN, S&D, KALIHATI": ["XEN Office Campus"]
+        },
+        "SE, O&M Circle Jamalpur": {
+            "XEN, S&D, JAMALPUR": ["XEN Office Campus", "Shahpur Substation", "Shekhervita Substation"],
+            "XEN, S&D, SHERPUR": ["XEN Office Campus", "RE, NALITABARI", "RE, SREEBORDI", "RE, JHENAIGATI", "RE, NAKLA"],
+            "XEN, S&D, SHARISHABARI": ["XEN Office Campus"]
+        }
     };
 
     const buildingClassMap = {
@@ -465,17 +475,35 @@
 
     let dataStorage = JSON.parse(localStorage.getItem('bpdb_mym_civil_assets')) || [];
 
-    function populateSubOffices() {
-        const topLayer = document.getElementById('jurisdictionLayer').value;
-        const subLayerSelect = document.getElementById('localOffice');
-        subLayerSelect.innerHTML = '';
+    function populateXenOffices() {
+        const circle = document.getElementById('jurisdictionLayer').value;
+        const xenSelect = document.getElementById('xenOffice');
+        xenSelect.innerHTML = '';
 
-        officeDatabaseRouter[topLayer].forEach(office => {
-            let element = document.createElement('option');
-            element.value = office;
-            element.textContent = office;
-            subLayerSelect.appendChild(element);
+        Object.keys(hierarchyRouter[circle]).forEach(xen => {
+            let opt = document.createElement('option');
+            opt.value = xen;
+            opt.textContent = xen;
+            xenSelect.appendChild(opt);
         });
+
+        populateSubOffices();
+    }
+
+    function populateSubOffices() {
+        const circle = document.getElementById('jurisdictionLayer').value;
+        const xen = document.getElementById('xenOffice').value;
+        const subSelect = document.getElementById('localOffice');
+        subSelect.innerHTML = '';
+
+        if(hierarchyRouter[circle] && hierarchyRouter[circle][xen]) {
+            hierarchyRouter[circle][xen].forEach(sub => {
+                let opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                subSelect.appendChild(opt);
+            });
+        }
     }
 
     function handleBuildingClassShift() {
@@ -521,6 +549,7 @@
         const payload = {
             uid: Date.now(),
             layer: document.getElementById('jurisdictionLayer').value,
+            xen: document.getElementById('xenOffice').value,
             office: document.getElementById('localOffice').value,
             layout: document.getElementById('layoutLink').value,
             mainClass: document.getElementById('mainBuildingClass').value,
@@ -540,7 +569,7 @@
         localStorage.setItem('bpdb_mym_civil_assets', JSON.stringify(dataStorage));
         
         this.reset();
-        populateSubOffices();
+        populateXenOffices();
         handleBuildingClassShift();
         displayRegistryTable();
     });
@@ -564,8 +593,8 @@
 
             let hierarchyTagStyle = 'tag-se';
             if (record.layer.includes('CE,')) hierarchyTagStyle = 'tag-hq';
-            else if (record.office.includes('(EE)')) hierarchyTagStyle = 'tag-ee';
-            else if (record.office.includes('(RE)')) hierarchyTagStyle = 'tag-re';
+            else if (record.office.includes('RE') || record.office.includes('Substation') || record.office.includes('MUKTAGACHA') || record.office.includes('Campus')) hierarchyTagStyle = 'tag-re';
+            else hierarchyTagStyle = 'tag-ee';
 
             let indicatorColor = varLineStyle(record.status);
 
@@ -576,43 +605,39 @@
             if (record.subClass === "Boundary Wall") {
                 profileMetricsString = `Length: ${record.lengthFt} FT`;
             } else {
-                profileMetricsString = `Total Area: ${record.area} SFT<br>Per Unit: ${record.areaPerUnit} SFT<br>Units: ${record.units} | Floors: ${record.floors}`;
+                profileMetricsString = `Total: ${record.area} SFT<br>Unit: ${record.areaPerUnit} SFT<br>Units: ${record.units} | Floors: ${record.floors}`;
             }
 
-            // Desktop Table Layout
+            // Desktop Row Layout Engine
             let matrixRow = `<tr>
                 <td><span class="tag ${hierarchyTagStyle}">${record.layer}</span></td>
-                <td><strong>${record.office}</strong></td>
-                <td><span style="font-size:0.8rem; color:var(--accent-highlight);">${record.mainClass}</span><br><b style="font-size:0.85rem;">${record.subClass}</b></td>
+                <td><b style="font-size:0.8rem; color:var(--accent-glow);">${record.xen}</b><br><span style="font-size:0.85rem;">${record.office}</span></td>
+                <td><span style="font-size:0.8rem; color:var(--text-secondary);">${record.mainClass}</span><br><b style="font-size:0.85rem;">${record.subClass}</b></td>
                 <td><u>${record.identity}</u></td>
                 <td><div style="font-size:0.8rem; line-height:1.3;">${profileMetricsString}</div></td>
-                <td>
-                    <div style="line-height: 1.5;">
-                        ${layoutLinkHtml}<br>${drawingLinkHtml}
-                    </div>
-                </td>
+                <td>${layoutLinkHtml}<br>${drawingLinkHtml}</td>
                 <td>${record.logs}</td>
                 <td><span class="status-dot" style="background-color: ${indicatorColor}"></span><span style="font-size:0.8rem;">${record.status}</span></td>
                 <td><button class="delete-btn" onclick="purgeRecord(${record.uid})">✕ Clear</button></td>
             </tr>`;
             bodyTarget.insertAdjacentHTML('beforeend', matrixRow);
 
-            // Responsive Mobile Card Layout
+            // Responsive Mobile Cards Engine Layout
             let mobileCard = `<div class="responsive-mobile-card">
                 <div class="mobile-card-row" style="display:flex; justify-content:space-between; align-items:center;">
                     <span class="tag ${hierarchyTagStyle}">${record.layer}</span>
                     <button class="delete-btn" onclick="purgeRecord(${record.uid})">✕ Clear</button>
                 </div>
                 <div class="mobile-card-row">
-                    <div class="mobile-label">Office Location Context</div>
-                    <strong>${record.office}</strong>
+                    <div class="mobile-label">Office Assignment Context</div>
+                    <b>${record.xen}</b><br><span style="font-size:0.85rem;">${record.office}</span>
                 </div>
                 <div class="mobile-card-row">
-                    <div class="mobile-label">Building Name & Spec</div>
+                    <div class="mobile-label">Building Identity Spec</div>
                     <u>${record.identity}</u> <span style="color:var(--accent-glow); font-size:0.8rem;">(${record.subClass})</span>
                 </div>
                 <div class="mobile-card-row">
-                    <div class="mobile-label">Structural Dimensions</div>
+                    <div class="mobile-label">Structural Metric Profile</div>
                     <div class="metrics-pill-box">
                         ${record.subClass === "Boundary Wall" ? `<span class="metric-pill">Length: ${record.lengthFt} FT</span>` : `
                         <span class="metric-pill">Total: ${record.area} SFT</span>
@@ -622,7 +647,7 @@
                     </div>
                 </div>
                 <div class="mobile-card-row">
-                    <div class="mobile-label">Documents Attached</div>
+                    <div class="mobile-label">Blueprints</div>
                     <div style="display:flex; gap:15px;">${layoutLinkHtml} ${drawingLinkHtml}</div>
                 </div>
                 <div class="mobile-card-row">
@@ -645,7 +670,8 @@
         return 'var(--status-green)';
     }
 
-    populateSubOffices();
+    // Initialize layout logic
+    populateXenOffices();
     handleBuildingClassShift();
     displayRegistryTable();
 </script>
