@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZCCD, BPDB Mymensingh - Building Asset Record</title>
+    <style>
+        :root {
+            --bg-canvas: #0b1329;
+            --bg-panel: #1c2541;
+            --bg-field: #3a506b;
+            --accent-glow: #00b4d8;
+            --accent-highlight: #90e0ef;
+            --text-primary: #edf2f4;
+            --text-secondary: #a2a8d3;
+            --border-line: #48cae4;
+            --status-green: #38b000;
+            --status-amber: #ffaa00;
+            --status-red: #d90429;
+            --status-blue: #0077b6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-primary);
+            padding: 12px;
+        }
+
+        @media (min-width: 768px) {
+            body { padding: 25px; }
+        }
+
+        .workspace-wrapper {
+            max-width: 1650px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: var(--bg-panel);
+            border-radius: 10px;
+            border-left: 5px solid var(--border-line);
+        }
+
+        header h1 {
+            font-size: 1.4rem;
+            color: var(--accent-glow);
+            letter-spacing: 0.5px;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            margin-top: 5px;
+            font-size: 0.85rem;
+        }
+
+        @media (min-width: 768px) {
+            header h1 { font-size: 1.85rem; }
+            header p { font-size: 0.95rem; }
+        }
+
+        .app-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 1150px) {
+            .app-layout {
+                grid-template-columns: 420px 1fr;
+                align-items: start;
+            }
+        }
+
+        .panel-card {
+            background-color: var(--bg-panel);
+            border: 1px solid rgba(72, 202, 228, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .panel-card { padding: 20px; }
+        }
+
+        .panel-card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--accent-highlight);
+            border-bottom: 2px solid var(--bg-field);
+            padding-bottom: 8px;
+        }
+
+        .form-element {
+            margin-bottom: 15px;
+        }
+
+        .form-row-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+        }
+
+        label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--bg-canvas);
+            border: 1px solid var(--bg-field);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--border-line);
+        }
+
+        .action-btn {
+            background-color: var(--border-line);
+            color: #0b1329;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: var(--accent-highlight);
+        }
+
+        .filter-ribbon {
+            background-color: var(--bg-canvas);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .table-frame {
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            display: none;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: top;
+        }
+
+        th {
+            background-color: rgba(0, 0, 0, 0.2);
+            color: var(--accent-glow);
+            font-weight: 600;
+        }
+
+        .mobile-cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .responsive-mobile-card {
+            background: rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .mobile-card-row {
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .mobile-card-row:last-child { margin-bottom: 0; }
+
+        .mobile-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .metrics-pill-box {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .metric-pill {
+            background: var(--bg-field);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--accent-highlight);
+        }
+
+        @media (min-width: 1100px) {
+            table { display: table; }
+            .mobile-cards-container { display: none; }
+        }
+
+        .tag {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .tag-hq { background-color: #7209b7; color: #fff; }
+        .tag-se { background-color: #4361ee; color: #fff; }
+        .tag-ee { background-color: #4cc9f0; color: #000; }
+        .tag-re { background-color: #f72585; color: #fff; }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .hyperlink-badge {
+            color: var(--accent-glow);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-top: 2px;
+        }
+
+        .hyperlink-badge:hover {
+            text-decoration: underline;
+            color: var(--accent-highlight);
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--status-red);
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="workspace-wrapper">
+    <header>
+        <h1>ZCCD, BPDB, MYMENSINGH</h1>
+        <p>Regional Hierarchy Civil Infrastructure Asset Management Workspace</p>
+    </header>
+
+    <div class="app-layout">
+        <div class="panel-card">
+            <h2>Building Asset Record</h2>
+            <form id="civilAssetForm">
+                <div class="form-element">
+                    <label for="jurisdictionLayer">Jurisdiction Office Name</label>
+                    <select id="jurisdictionLayer" required onchange="populateSubOffices()">
+                        <option value="CE, Central Distribution Zone, Mymensingh">CE, Central Distribution Zone, Mymensingh</option>
+                        <option value="O&M Circle, Mymensingh">O&M Circle, Mymensingh</option>
+                        <option value="O&M Circle, Jamalpur">O&M Circle, Jamalpur</option>
+                        <option value="O&M Circle, Kishoreganj">O&M Circle, Kishoreganj</option>
+                        <option value="O&M Circle, Netrokona">O&M Circle, Netrokona</option>
+                    </select>
+                </div>
+
+                <div class="form-element">
+                    <label for="localOffice">Reporting Office</label>
+                    <select id="localOffice" required></select>
+                </div>
+
+                <div class="form-element">
+                    <label for="layoutLink">Campus Layout URL Link</label>
+                    <input type="url" id="layoutLink" placeholder="https://example.com/layout-blueprint">
+                </div>
+
+                <div class="form-element">
+                    <label for="mainBuildingClass">Building Classification Type</label>
+                    <select id="mainBuildingClass" required onchange="handleBuildingClassShift()">
+                        <option value="Residential Buildings">1. Residential Buildings</option>
+                        <option value="Official Buildings">2. Official Buildings</option>
+                        <option value="Non Residential Building">3. Non Residential Building</option>
+                        <option value="Utility Building">4. Utility Building</option>
+                        <option value="Others">5. Others</option>
+                    </select>
+                </div>
+
+                <div class="form-element">
+                    <label for="subBuildingClass">Sub-Category Profile</label>
+                    <select id="subBuildingClass" required onchange="checkForBoundaryWall()"></select>
+                </div>
+
+                <div class="form-element" id="customOptionWrapper" style="display: none;">
+                    <label for="customOptionInput">Specify Custom Type</label>
+                    <input type="text" id="customOptionInput" placeholder="Type custom asset name specification...">
+                </div>
+
+                <div class="form-element">
+                    <label for="structureIdentity">Building Name</label>
+                    <input type="text" id="structureIdentity" placeholder="e.g., Main Office Block, ZRS Repair Shed" required>
+                </div>
+
+                <div class="form-element" id="standardMetricsWrapper">
+                    <div class="form-row-metrics">
+                        <div>
+                            <label for="areaSft">Area (SFT)</label>
+                            <input type="number" id="areaSft" placeholder="Total" min="0">
+                        </div>
+                        <div>
+                            <label for="areaPerUnit">SFT Per Unit</label>
+                            <input type="number" id="areaPerUnit" placeholder="Per Unit" min="0">
+                        </div>
+                        <div>
+                            <label for="numUnits">No. of Units</label>
+                            <input type="number" id="numUnits" placeholder="Units" min="0">
+                        </div>
+                        <div>
+                            <label for="numFloors">No. of Floors</label>
+                            <input type="number" id="numFloors" placeholder="Floors" min="1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-element" id="boundaryMetricsWrapper" style="display: none;">
+                    <label for="wallLength">Length (FT)</label>
+                    <input type="number" id="wallLength" placeholder="Enter total asset linear length in feet" min="0">
+                </div>
+
+                <div class="form-element">
+                    <label for="drawingLink">Asset Drawings Blueprint URL Link</label>
+                    <input type="url" id="drawingLink" placeholder="https://example.com/engineering-drawing">
+                </div>
+
+                <div class="form-element">
+                    <label for="civilDetails">Maintenance Engineering Observation</label>
+                    <textarea id="civilDetails" rows="3" placeholder="Log design data, physical observations, maintenance remarks..." required></textarea>
+                </div>
+
+                <div class="form-element">
+                    <label for="executionStatus">Current Processing Stage</label>
+                    <select id="executionStatus">
+                        <option value="Just Asset Registry (No Maintenance Needed)">Just Asset Registry (No Maintenance Needed)</option>
+                        <option value="Critical - Action Required">Critical - Action Required</option>
+                        <option value="Estimation Phase">Estimation Phase</option>
+                        <option value="On-site Work ongoing">On-site Work ongoing</option>
+                        <option value="Verified & Completed">Verified & Completed</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="action-btn">Commit Entry to Registry</button>
+            </form>
+        </div>
+
+        <div class="panel-card">
+            <h2>Mymensingh Regional Master Civil Asset Database</h2>
+            
+            <div class="filter-ribbon">
+                <select id="viewFilter" onchange="displayRegistryTable()">
+                    <option value="All">Show All Regional Records</option>
+                    <option value="CE, Central Distribution Zone, Mymensingh">CE, Central Distribution Zone, Mymensingh</option>
+                    <option value="O&M Circle, Mymensingh">O&M Circle, Mymensingh</option>
+                    <option value="O&M Circle, Jamalpur">O&M Circle, Jamalpur</option>
+                    <option value="O&M Circle, Kishoreganj">O&M Circle, Kishoreganj</option>
+                    <option value="O&M Circle, Netrokona">O&M Circle, Netrokona</option>
+                </select>
+            </div>
+
+            <div class="table-frame">
+                <table id="desktopTable">
+                    <thead>
+                        <tr>
+                            <th>Jurisdiction</th>
+                            <th>Reporting Office</th>
+                            <th>Classification</th>
+                            <th>Building Name</th>
+                            <th>Civil Profile Data</th>
+                            <th>Blueprints</th>
+                            <th>Observation Details</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registryTableBody"></tbody>
+                </table>
+
+                <div id="mobileCardsView" class="mobile-cards-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script {safe}>
+    const officeDatabaseRouter = {
+        "CE, Central Distribution Zone, Mymensingh": [
+            "CE Office Campus",
+            "Zonal Repair Shop, Tongi"
+        ],
+        "O&M Circle, Mymensingh": [
+            "S&D Division-1, Mymensingh (EE)",
+            "S&D Division-2, Mymensingh (EE)",
+            "S&D Division-3, Mymensingh (EE)",
+            "S&D Division, Bhaluka (EE)",
+            "Trishal Electricity Supply (RE)",
+            "Gafargaon Electricity Supply (RE)",
+            "Phulpur Electricity Supply (RE)"
+        ],
+        "O&M Circle, Jamalpur": [
+            "S&D Division, Jamalpur (EE)",
+            "Sherpur Electricity Supply (RE)",
+            "Sharishabari Electricity Supply (RE)"
+        ],
+        "O&M Circle, Kishoreganj": [
+            "S&D Division, Kishoreganj (EE)",
+            "S&D Division, Bhairab (EE)",
+            "Bajitpur Electricity Supply (RE)"
+        ],
+        "O&M Circle, Netrokona": [
+            "S&D Division, Netrokona (EE)",
+            "Durgapur Electricity Supply (RE)",
+            "Mohanganj Electricity Supply (RE)"
+        ]
+    };
+
+    const buildingClassMap = {
+        "Residential Buildings": ["Staff Residential Quarter", "Staff Dormitory", "Officers Residential Quarter", "Officers Dormitory", "XEN Quarter"],
+        "Official Buildings": ["Office building", "ZRS Shop", "S&D Office Building", "SE Office Building", "Complain Centre", "Semipaka Store", "Store Building", "Hall", "Rest House"],
+        "Non Residential Building": ["Mosque", "School Building"],
+        "Utility Building": ["Pump House", "Substation", "Control Room Building"],
+        "Others": ["Boundary Wall", "Custom Type Option Input"]
+    };
+
+    let dataStorage = JSON.parse(localStorage.getItem('bpdb_mym_civil_assets')) || [];
+
+    function populateSubOffices() {
+        const topLayer = document.getElementById('jurisdictionLayer').value;
+        const subLayerSelect = document.getElementById('localOffice');
+        subLayerSelect.innerHTML = '';
+
+        officeDatabaseRouter[topLayer].forEach(office => {
+            let element = document.createElement('option');
+            element.value = office;
+            element.textContent = office;
+            subLayerSelect.appendChild(element);
+        });
+    }
+
+    function handleBuildingClassShift() {
+        const chosenClass = document.getElementById('mainBuildingClass').value;
+        const subSelect = document.getElementById('subBuildingClass');
+        subSelect.innerHTML = '';
+
+        buildingClassMap[chosenClass].forEach(sub => {
+            let opt = document.createElement('option');
+            opt.value = sub;
+            opt.textContent = sub;
+            subSelect.appendChild(opt);
+        });
+
+        checkForBoundaryWall();
+    }
+
+    function checkForBoundaryWall() {
+        const subVal = document.getElementById('subBuildingClass').value;
+        const standardWrapper = document.getElementById('standardMetricsWrapper');
+        const boundaryWrapper = document.getElementById('boundaryMetricsWrapper');
+        const customWrapper = document.getElementById('customOptionWrapper');
+
+        customWrapper.style.display = (subVal === "Custom Type Option Input") ? "block" : "none";
+
+        if (subVal === "Boundary Wall") {
+            standardWrapper.style.display = "none";
+            boundaryWrapper.style.display = "block";
+        } else {
+            standardWrapper.style.display = "block";
+            boundaryWrapper.style.display = "none";
+        }
+    }
+
+    document.getElementById('civilAssetForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        let subCategoryFinal = document.getElementById('subBuildingClass').value;
+        if (subCategoryFinal === "Custom Type Option Input") {
+            subCategoryFinal = document.getElementById('customOptionInput').value || "Custom Asset";
+        }
+
+        const payload = {
+            uid: Date.now(),
+            layer: document.getElementById('jurisdictionLayer').value,
+            office: document.getElementById('localOffice').value,
+            layout: document.getElementById('layoutLink').value,
+            mainClass: document.getElementById('mainBuildingClass').value,
+            subClass: subCategoryFinal,
+            identity: document.getElementById('structureIdentity').value,
+            area: document.getElementById('areaSft').value || "0",
+            areaPerUnit: document.getElementById('areaPerUnit').value || "0",
+            units: document.getElementById('numUnits').value || "0",
+            floors: document.getElementById('numFloors').value || "0",
+            lengthFt: document.getElementById('wallLength').value || "0",
+            drawing: document.getElementById('drawingLink').value,
+            logs: document.getElementById('civilDetails').value,
+            status: document.getElementById('executionStatus').value
+        };
+
+        dataStorage.push(payload);
+        localStorage.setItem('bpdb_mym_civil_assets', JSON.stringify(dataStorage));
+        
+        this.reset();
+        populateSubOffices();
+        handleBuildingClassShift();
+        displayRegistryTable();
+    });
+
+    function purgeRecord(uid) {
+        dataStorage = dataStorage.filter(item => item.uid !== uid);
+        localStorage.setItem('bpdb_mym_civil_assets', JSON.stringify(dataStorage));
+        displayRegistryTable();
+    }
+
+    function displayRegistryTable() {
+        const currentFilter = document.getElementById('viewFilter').value;
+        const bodyTarget = document.getElementById('registryTableBody');
+        const mobileTarget = document.getElementById('mobileCardsView');
+        
+        bodyTarget.innerHTML = '';
+        mobileTarget.innerHTML = '';
+
+        dataStorage.forEach(record => {
+            if (currentFilter !== 'All' && record.layer !== currentFilter) return;
+
+            let hierarchyTagStyle = 'tag-se';
+            if (record.layer.includes('CE,')) hierarchyTagStyle = 'tag-hq';
+            else if (record.office.includes('(EE)')) hierarchyTagStyle = 'tag-ee';
+            else if (record.office.includes('(RE)')) hierarchyTagStyle = 'tag-re';
+
+            let indicatorColor = varLineStyle(record.status);
+
+            let layoutLinkHtml = record.layout ? `<a href="${record.layout}" target="_blank" class="hyperlink-badge">Layout</a>` : `<span style="color:var(--text-secondary); font-size:0.8rem;">None</span>`;
+            let drawingLinkHtml = record.drawing ? `<a href="${record.drawing}" target="_blank" class="hyperlink-badge">Drawing</a>` : `<span style="color:var(--text-secondary); font-size:0.8rem;">None</span>`;
+
+            let profileMetricsString = "";
+            if (record.subClass === "Boundary Wall") {
+                profileMetricsString = `Length: ${record.lengthFt} FT`;
+            } else {
+                profileMetricsString = `Total Area: ${record.area} SFT<br>Per Unit: ${record.areaPerUnit} SFT<br>Units: ${record.units} | Floors: ${record.floors}`;
+            }
+
+            // Desktop Table Layout
+            let matrixRow = `<tr>
+                <td><span class="tag ${hierarchyTagStyle}">${record.layer}</span></td>
+                <td><strong>${record.office}</strong></td>
+                <td><span style="font-size:0.8rem; color:var(--accent-highlight);">${record.mainClass}</span><br><b style="font-size:0.85rem;">${record.subClass}</b></td>
+                <td><u>${record.identity}</u></td>
+                <td><div style="font-size:0.8rem; line-height:1.3;">${profileMetricsString}</div></td>
+                <td>
+                    <div style="line-height: 1.5;">
+                        ${layoutLinkHtml}<br>${drawingLinkHtml}
+                    </div>
+                </td>
+                <td>${record.logs}</td>
+                <td><span class="status-dot" style="background-color: ${indicatorColor}"></span><span style="font-size:0.8rem;">${record.status}</span></td>
+                <td><button class="delete-btn" onclick="purgeRecord(${record.uid})">✕ Clear</button></td>
+            </tr>`;
+            bodyTarget.insertAdjacentHTML('beforeend', matrixRow);
+
+            // Responsive Mobile Card Layout
+            let mobileCard = `<div class="responsive-mobile-card">
+                <div class="mobile-card-row" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="tag ${hierarchyTagStyle}">${record.layer}</span>
+                    <button class="delete-btn" onclick="purgeRecord(${record.uid})">✕ Clear</button>
+                </div>
+                <div class="mobile-card-row">
+                    <div class="mobile-label">Office Location Context</div>
+                    <strong>${record.office}</strong>
+                </div>
+                <div class="mobile-card-row">
+                    <div class="mobile-label">Building Name & Spec</div>
+                    <u>${record.identity}</u> <span style="color:var(--accent-glow); font-size:0.8rem;">(${record.subClass})</span>
+                </div>
+                <div class="mobile-card-row">
+                    <div class="mobile-label">Structural Dimensions</div>
+                    <div class="metrics-pill-box">
+                        ${record.subClass === "Boundary Wall" ? `<span class="metric-pill">Length: ${record.lengthFt} FT</span>` : `
+                        <span class="metric-pill">Total: ${record.area} SFT</span>
+                        <span class="metric-pill">Per Unit: ${record.areaPerUnit} SFT</span>
+                        <span class="metric-pill">${record.units} Units</span>
+                        <span class="metric-pill">${record.floors} Floors</span>`}
+                    </div>
+                </div>
+                <div class="mobile-card-row">
+                    <div class="mobile-label">Documents Attached</div>
+                    <div style="display:flex; gap:15px;">${layoutLinkHtml} ${drawingLinkHtml}</div>
+                </div>
+                <div class="mobile-card-row">
+                    <div class="mobile-label">Observations</div>
+                    <span style="font-size:0.85rem; color:var(--text-secondary);">${record.logs}</span>
+                </div>
+                <div class="mobile-card-row" style="margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.05)">
+                    <span class="status-dot" style="background-color: ${indicatorColor}"></span>
+                    <span style="font-size:0.85rem; font-weight:600;">${record.status}</span>
+                </div>
+            </div>`;
+            mobileTarget.insertAdjacentHTML('beforeend', mobileCard);
+        });
+    }
+
+    function varLineStyle(status) {
+        if (status.includes('Asset Registry')) return 'var(--status-blue)';
+        if (status.includes('Critical')) return 'var(--status-red)';
+        if (status.includes('Estimation') || status.includes('ongoing')) return 'var(--status-amber)';
+        return 'var(--status-green)';
+    }
+
+    populateSubOffices();
+    handleBuildingClassShift();
+    displayRegistryTable();
+</script>
+</body>
+</html>
